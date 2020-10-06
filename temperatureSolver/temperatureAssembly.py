@@ -5,10 +5,10 @@ def DenseMatrix(BCs,Materiaux,Discret,Sources,Advection,size,facteurs = (1,1)):
     
     #Equation aux limites    
     mat0 = Materiaux[0]
-    k0,rho0,cp0 = mat0[1],mat0[2],mat0[3]
+    k0 = mat0[1]
     _,dx0 = Discret[0]
     matn = Materiaux[-1]
-    kn,rhon,cpn = matn[1],matn[2],matn[3]
+    kn = matn[1]
     _,dxn = Discret[-1]    
     fact1,fact2 = facteurs 
     
@@ -22,13 +22,23 @@ def DenseMatrix(BCs,Materiaux,Discret,Sources,Advection,size,facteurs = (1,1)):
             if mat[0] == 'Solid' :
                 rho,cp = mat[2],mat[3]
                 C = 0.5*rho*cp(0.5*(Tm[1:]+Tm[:-1]))*dx
+                
+                diagC[N0:N0+Nxi] += C
+                diagC[N0+1:N0+Nxi+1] += C
+                """
                 for i,ci in enumerate(C) :
                     j = N0+i
-                    diagC[j:j+2:] += [ci,ci]
+                    diagC[j:j+2:] += [ci,ci]"""
                           
                    
             if mat[0] == 'Cylindric' : 
                 _,k,rho,cp,(ri,re) = mat
+                C = 0.5*rho*cp(0.5*(Tm[1:]+Tm[:-1]))
+                r1 = np.linspace(ri,re-dx,Nxi)
+                r2 = r1+dx
+                diagC[N0:N0+Nxi] += C*(r2**2-r1**2)
+                diagC[N0+1:N0+Nxi+1] += C*(r2**2-r1**2)
+                """
                 r1 = ri
                 r2 = ri + dx
                 C = 0.5*rho*cp(0.5*(Tm[1:]+Tm[:-1]))
@@ -36,7 +46,7 @@ def DenseMatrix(BCs,Materiaux,Discret,Sources,Advection,size,facteurs = (1,1)):
                     j = N0+i
                     diagC[j:j+2:] += ci*np.array([r2**2-r1**2,r2**2-r1**2])
                     r1 += dx
-                    r2 += dx
+                    r2 += dx"""
                     
                     
             if mat[0] == 'FluidCavity' : 
@@ -90,20 +100,37 @@ def DenseMatrix(BCs,Materiaux,Discret,Sources,Advection,size,facteurs = (1,1)):
             if mat[0] == 'Solid' :
                 k = mat[1]
                 K = 0.5*(k(Tm[1:]) + k(Tm[:-1]))/dx
+                
+                matrixK[N0:N0+Nxi,N0:N0+Nxi] +=  np.eye(Nxi)*K
+                matrixK[N0:N0+Nxi,N0+1:N0+Nxi+1] += -np.eye(Nxi)*K
+                matrixK[N0+1:N0+Nxi+1,N0+1:N0+Nxi+1] +=  np.eye(Nxi)*K
+                matrixK[N0+1:N0+Nxi+1,N0:N0+Nxi] += -np.eye(Nxi)*K
+
+                """
                 for i in range(0,Nxi) :
                     j = N0+i
-                    matrixK[j:j+2:,j:j+2:] += [[K[i],-K[i]],[-K[i],K[i]]]
+                    matrixK[j:j+2,j:j+2] += [[K[i],-K[i]],[-K[i],K[i]]]"""
                           
             if mat[0] == 'Cylindric' : 
                 _,k,_,_,(ri,re) = mat
                 # K = k(Tm)/dx
                 K = 0.5*(k(Tm[1:]) + k(Tm[:-1]))/dx
+                r1 = np.linspace(ri,re-dx,Nxi)
+                r2 = r1+dx
+                
+                
+                matrixK[N0:N0+Nxi,N0:N0+Nxi] +=  np.eye(Nxi)*K*(r1+r2)
+                matrixK[N0:N0+Nxi,N0+1:N0+Nxi+1] += -np.eye(Nxi)*K*(r1+r2)
+                matrixK[N0+1:N0+Nxi+1,N0+1:N0+Nxi+1] +=  np.eye(Nxi)*K*(r1+r2)
+                matrixK[N0+1:N0+Nxi+1,N0:N0+Nxi] += -np.eye(Nxi)*K*(r1+r2)
+                
+                """
                 r1,r2 = ri,ri+dx
                 for i in range(0,Nxi) :
                     j = N0+i
-                    matrixK[j:j+2:,j:j+2:] += (r1+r2)*np.array([[K[i],-K[i]],[-K[i],K[i]]])
+                    matrixK[j:j+2,j:j+2:] += (r1+r2)*np.array([[K[i],-K[i]],[-K[i],K[i]]])
                     r1 += dx
-                    r2 += dx
+                    r2 += dx"""
                     
                     
             if mat[0] == 'FluidCavity' : 
