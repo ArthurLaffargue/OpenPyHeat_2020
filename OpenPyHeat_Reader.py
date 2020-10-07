@@ -4,6 +4,7 @@ import os
 import sys
 import configparser
 from scipy.interpolate import interp1d,interp2d
+import time
 
 try : 
     from .utilities.phase_change_material import PCM_properties
@@ -1380,8 +1381,10 @@ def allrun(path):
     try : from .temperatureSolver.temperatureSolver import equationModel
     except : from temperatureSolver.temperatureSolver import equationModel
     
+    #Cleaning
     cleanCase(path)
     
+    #Reading
     reader = ReadMat_timesolver(path)
     BCs,BCsFunc,(radiationL,radiationR),T0 = ReadBcsAndInitial(path)
     application,solver_option = ReadSolver(path)
@@ -1389,6 +1392,7 @@ def allrun(path):
     matList = reader.MatList
     Eq = equationModel()
     
+    #Set up equation model
     for mat in matList : 
         
         if mat[0] == 'solid1D' or mat[0] == "solid0D": 
@@ -1424,6 +1428,8 @@ def allrun(path):
         Eq.addRadiativeTransfert(radiationR[0],radiationR[1],radiationR[2])
     Eq.ConstructEquation()
     
+    #Solve
+    time_comp_start = time.time()
     if application == 'transient' : 
         Xt,solver,wstep,full_print = solver_option
         if solver == "Odeint" :         
@@ -1448,7 +1454,8 @@ def allrun(path):
             
         if solver == 'BFGS' : 
             Ysol = BFGSSolver(Eq,T0,full_print)
-    
+    time_comp_end = time.time()
+    print("Computation time : %.3f s"%(time_comp_end-time_comp_start))
     
     
     #POST PROC
