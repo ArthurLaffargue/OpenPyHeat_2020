@@ -1463,7 +1463,6 @@ def allrun(path):
     matNodeList,matNodePos = buildMesh(path,matList,matNames)
     
     
-    
     if application == 'transient' :
         Ysol,Xt = Ysol[::wstep],Xt[::wstep] 
         shape = (len(Xt),len(Ysol[0]))

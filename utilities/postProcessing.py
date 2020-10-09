@@ -48,11 +48,15 @@ def saveSteadySolution(path,Tsol,name='solution.txt'):
 def saveMaterialSolutionTransient(path,matNodeList,matList,matNames,Xt,Xsol):
 
     for name,node,mat in zip(matNames,matNodeList,matList) :
-        if  mat[0] == 'solid1D' or mat[0] == "cylindric1D" or mat[0]=="fluidCavity" or mat[0]=='PCM':
+        if  mat[0] == 'solid1D' or mat[0] == "cylindric1D" or mat[0]=='PCM':
             Tsol = Xsol[:,node]
             shape = (len(Xt),len(node))
             saveTransientSolution(path,Xt,Tsol,shape,name=name+'_T.txt')
 
+        if mat[0]=="fluidCavity" :
+            Tsol = Xsol[:,node]
+            shape = (len(Xt),len(node))
+            saveTransientSolution(path,Xt,Tsol,shape,name=name+'_T.txt')
 
         if mat[0] == 'gasCavity' :
             _,rho,cp,v,s,h,qint,M,qm,Tinlet = mat
@@ -115,7 +119,7 @@ def buildMesh(path,matList,matNames):
     start = 0
     matNodeList = []
     matNodePos = []
-    for mat,name in zip(matList,matNames) :
+    for klayer,(mat,name) in enumerate(zip(matList,matNames)) :
 
         if  mat[0] == 'solid1D' or mat[0] == "solid0D":
             _,k,rho,cp,np,e,qint = mat
@@ -148,25 +152,45 @@ def buildMesh(path,matList,matNames):
 
         if mat[0] == 'fluidCavity' :
             _,rho,cp,v,s,h,qint,qm,Tinlet = mat
-            file += [name]
-            file += ["{"]
-            file += ["%d     none"%(start+1)]
-            file += ['}']
-            file += ['']
-            matNodeList.append([start+1])
-            matNodePos.append([0])
-            start += 2
+            if klayer == 0 :
+                file += [name]
+                file += ["{"]
+                file += ["%d     none"%(start)]
+                file += ['}']
+                file += ['']
+                matNodeList.append([start])
+                matNodePos.append([0])
+                start += 1
+            else :
+                file += [name]
+                file += ["{"]
+                file += ["%d     none"%(start+1)]
+                file += ['}']
+                file += ['']
+                matNodeList.append([start+1])
+                matNodePos.append([0])
+                start += 2
 
         if mat[0] == 'gasCavity' :
             _,rho,cp,v,s,h,qint,M,qm,Tinlet = mat
-            file += [name]
-            file += ["{"]
-            file += ["%d     none"%(start+1)]
-            file += ['}']
-            file += ['']
-            matNodeList.append([start+1])
-            matNodePos.append([0])
-            start += 2
+            if klayer == 0 :
+                file += [name]
+                file += ["{"]
+                file += ["%d     none"%(start)]
+                file += ['}']
+                file += ['']
+                matNodeList.append([start])
+                matNodePos.append([0])
+                start += 1
+            else :
+                file += [name]
+                file += ["{"]
+                file += ["%d     none"%(start+1)]
+                file += ['}']
+                file += ['']
+                matNodeList.append([start+1])
+                matNodePos.append([0])
+                start += 2
 
 
         if mat[0] == 'PCM' :

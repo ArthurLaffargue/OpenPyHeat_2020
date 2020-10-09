@@ -448,3 +448,6 @@ class equationModel :
     def get_size(self): 
         return self.__size
         
+    
+    def getMatList(self):
+        return self.__Materiaux
