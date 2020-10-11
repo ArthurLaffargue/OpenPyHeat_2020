@@ -1,7 +1,7 @@
 # coding: utf-8
 from scipy.optimize import root
 import numpy as np
-from scipy.linalg import solve,norm,solve_triangular
+from numpy.linalg import solve,norm
 
 
 """
@@ -11,16 +11,20 @@ Solver for 1D multilayer heat transfert equations
 Arthur Laffargue
 
 """
+#
+# def norm(X) :
+#     return np.sqrt(np.sum(X**2))
+
 
 def set_initial_values(T0,size) :
 
     if isinstance(T0,float) or isinstance(T0,int):
-        return np.asarray([T0]*size)
+        return np.asarray([T0]*size,dtype=float)
     else :
         if len(T0) != size :
             raise ValueError("Dimension mismatch : size of initial temperatures must be "+str(size))
         else :
-            return np.asarray(T0)
+            return np.asarray(T0,dtype=float)
 
 
 def ScipyRoot(equation_model,T0,full_print=False) :
@@ -97,6 +101,8 @@ def SemiImplicitLinearSolver(equation_model,T0,full_print=False,maxiter=350,tol=
     T0 = set_initial_values(T0,size)
 
     print('Work in progress ... \n')
+
+
 
     K0,Q0 = K(T0),Q(T0)
     r0 = norm(K0.dot(T0) - Q0)/size
