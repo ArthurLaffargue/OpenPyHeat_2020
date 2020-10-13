@@ -2,6 +2,26 @@
 import numpy as np 
 
 def DenseMatrix(BCs,Materiaux,Discret,Sources,Advection,size,facteurs = (1,1)): 
+
+    #Convection
+    Indice = [k for k,_,_,_ in Advection]
+    indexConvection = []
+    for k in Indice:
+        if k == 0 : 
+            indexConvection.append(0)
+        else : 
+            N0 = sum([N for N,_ in Discret[:k]]) + 1
+            indexConvection.append(N0)
+        
+    vectA = np.zeros(size)
+    def VectA( T,  t ): 
+        
+        for index,(_,qm,Cp,Tinlet) in zip(indexConvection,Advection) :
+            vectA[index] = qm*Cp(T[index])*Tinlet(t)
+        return vectA
+    
+            
+    
     
     #Equation aux limites    
     mat0 = Materiaux[0]
@@ -220,6 +240,10 @@ def DenseMatrix(BCs,Materiaux,Discret,Sources,Advection,size,facteurs = (1,1)):
         if BCs[1][0] == 'Convection' : 
             h,Td = BCs[1][1]
             matrixK[-1,-1] += h*fact2
+            
+            
+        for index,(_,qm,Cp,_) in zip(indexConvection,Advection) :
+            matrixK[index,index] += qm*Cp(T[index])
         return matrixK     
         
           
@@ -273,27 +297,8 @@ def DenseMatrix(BCs,Materiaux,Discret,Sources,Advection,size,facteurs = (1,1)):
             return vectS
     
     
-    #Convection
-    Indice = [k for k,_,_,_ in Advection]
-    indexConvection = []
-    for k in Indice:
-        if k == 0 : 
-            indexConvection.append(0)
-        else : 
-            N0 = sum([N for N,_ in Discret[:k]]) + 1
-            indexConvection.append(N0)
-        
-    vectA = np.zeros(size)
-    def VectA( T,  t ): 
-        
-        for index,(_,qm,Cp,Tinlet) in zip(indexConvection,Advection) :
-            vectA[index] = qm*Cp(T[index])*(Tinlet(t)-T[index])
-        return vectA
     
-            
     return invMatC,MatK,VectB,VectS,VectA
-    
-    
     
 #Transfert Radiatif externes
 def RadiativeExchange(radiation,size) : 
