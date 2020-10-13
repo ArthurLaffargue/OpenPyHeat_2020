@@ -434,7 +434,10 @@ def plotSteady(matNames,matList,matNodes,Ysol,path) :
     for name,nodes,mat in zip(matNames,matNodes,matList):
 
         lw = 1.2
-        line = ax.plot(nodes,Ysol[nodes],lw=lw)
+        if (mat[0] == 'gasCavity') or (mat[0] == 'fluidCavity') :
+            line = ax.plot(nodes,Ysol[nodes],'s')
+        else :
+            line = ax.plot(nodes,Ysol[nodes],lw=lw)
         Lines.append(line[0])
 
     #plt.figimage(logo, 10, 10, zorder=1)
@@ -457,7 +460,7 @@ def plotSteady(matNames,matList,matNodes,Ysol,path) :
     fig.clf()
     for name,nodes,mat in zip(matNames,matNodes,matList):
 
-
+        savePlotFlag = False
         if  mat[0] == 'solid1D' :
             lw = 1.2
             _,_,_,_,np,e,_ = mat
@@ -472,6 +475,8 @@ def plotSteady(matNames,matList,matNodes,Ysol,path) :
             ax.set_ylabel("Temperature $K$")
             ax.grid(True)
             ax.set_title(name)
+
+            savePlotFlag = True
 
         if  mat[0] == 'cylindric1D' :
             lw = 1.2
@@ -489,6 +494,8 @@ def plotSteady(matNames,matList,matNodes,Ysol,path) :
             ax.set_ylabel("Temperature $K$")
             ax.grid(True)
             ax.set_title(name)
+
+            savePlotFlag = True
 
         if mat[0] == 'PCM' :
             _,_ ,_,_,np,_,geom = mat
@@ -524,6 +531,9 @@ def plotSteady(matNames,matList,matNodes,Ysol,path) :
                 ax.grid(True)
                 ax.set_title(name)
 
-        plt.tight_layout()
-        fig.savefig(path+"/plots/"+name+"_plot.png")
+            savePlotFlag = True
+
+        if savePlotFlag :
+            plt.tight_layout()
+            fig.savefig(path+"/plots/"+name+"_plot.png")
         fig.clf()

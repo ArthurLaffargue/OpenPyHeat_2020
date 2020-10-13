@@ -49,7 +49,7 @@ def PCM_properties(ks,kl,cps,cpl,Lf,Ts,Tl) :
     A[3]=[i*Tl**(i-1) for i in range(5)]
     A[4]=[(Tl**i-Ts**i)/i for i in range(1,6)]
 
-    B=np.array([cps,cpl,0,0,Lf+cps*Ts])
+    B=np.array([cps,cpl,0,0,Lf])
     coef=np.linalg.solve(A,B)
 
     cpi = lambda x : sum([c*x**i for i,c in enumerate(coef)])
@@ -65,10 +65,10 @@ def PCM_properties(ks,kl,cps,cpl,Lf,Ts,Tl) :
 if __name__ == '__main__' :
     import matplotlib.pyplot as plt
 
-    k,cp = PCM_properties(1.6,0.6,2060,4185,333e3,270.5,275.5)
+    k,cp = PCM_properties(15,15,1650,1650,124e3,345,364)
 
 
-    T = np.linspace(265,285,2500)
+    T = np.linspace(300,373,2500)
 
     plt.style.use('ggplot')
     plt.figure(1)

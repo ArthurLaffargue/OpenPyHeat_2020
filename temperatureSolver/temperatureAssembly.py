@@ -68,22 +68,22 @@ def DenseMatrix(BCs,Materiaux,Discret,Sources,Advection,size,facteurs = (1,1)):
                 T1,T2 = Tm
                 diagC[N0+1] += rho*cp((T1+T2)/2)*V
                 
-            if mat[0] == 'FluidFlow' : 
-                _,rho,cp,_,_,V,_,_ = mat
-                T1,Tf,T2 = Tm
-                c1 = 0.5*V*rho*cp(0.5*(T1+Tf))
-                c2 = 0.5*V*rho*cp(0.5*(T2+Tf))
-                diagC[N0+1] += c1+c2
-
-            if mat[0] == 'LeftFluidFlow' :
-                _,rho,cp,_,_,V,_,_ = mat
-                T1,T2 = Tm
-                diagC[N0] += rho*cp((T1+T2)/2)*V
-                
-            if mat[0] == 'RightFluidFlow' :
-                _,rho,cp,_,_,V,_,_ = mat
-                T1,T2 = Tm
-                diagC[N0+1] += rho*cp((T1+T2)/2)*V                
+            # if mat[0] == 'FluidFlow' : 
+            #     _,rho,cp,_,_,V,_,_ = mat
+            #     T1,Tf,T2 = Tm
+            #     c1 = 0.5*V*rho*cp(0.5*(T1+Tf))
+            #     c2 = 0.5*V*rho*cp(0.5*(T2+Tf))
+            #     diagC[N0+1] += c1+c2
+            # 
+            # if mat[0] == 'LeftFluidFlow' :
+            #     _,rho,cp,_,_,V,_,_ = mat
+            #     T1,T2 = Tm
+            #     diagC[N0] += rho*cp((T1+T2)/2)*V
+            #     
+            # if mat[0] == 'RightFluidFlow' :
+            #     _,rho,cp,_,_,V,_,_ = mat
+            #     T1,T2 = Tm
+            #     diagC[N0+1] += rho*cp((T1+T2)/2)*V                
                                           
             N0+=Nxi     
                
@@ -118,7 +118,6 @@ def DenseMatrix(BCs,Materiaux,Discret,Sources,Advection,size,facteurs = (1,1)):
                 r1 = np.linspace(ri,re-dx,Nxi)
                 r2 = r1+dx
                 
-                
                 matrixK[N0:N0+Nxi,N0:N0+Nxi] +=  np.eye(Nxi)*K*(r1+r2)
                 matrixK[N0:N0+Nxi,N0+1:N0+Nxi+1] += -np.eye(Nxi)*K*(r1+r2)
                 matrixK[N0+1:N0+Nxi+1,N0+1:N0+Nxi+1] +=  np.eye(Nxi)*K*(r1+r2)
@@ -138,11 +137,11 @@ def DenseMatrix(BCs,Materiaux,Discret,Sources,Advection,size,facteurs = (1,1)):
                 T1,Tf,T2 = Tm
                 k1 = h1(T1,Tf)
                 k2 = h2(Tf,T2)
-                r1,r2 = 1,1
+                r1,r2 = 1.0,1.0
                 if Materiaux[i-1][0] == 'Cylindric' :
-                    r1 *= Materiaux[i-1][-1][1] 
+                    r1 = 2*Materiaux[i-1][-1][1] 
                 if Materiaux[i+1][0] == 'Cylindric' :
-                    r2 *= Materiaux[i+1][-1][0] 
+                    r2 = 2*Materiaux[i+1][-1][0] 
                 matrixK[N0:N0+Nxi+1,N0:N0+Nxi+1] += [[k1*r1,-k1*r1,0],
                                                     [-k1*S1,S1*k1+S2*k2,-k2*S2],
                                                     [0,-k2*r2,k2*r2]]    
@@ -150,57 +149,61 @@ def DenseMatrix(BCs,Materiaux,Discret,Sources,Advection,size,facteurs = (1,1)):
             if mat[0] == 'LeftFluidCavity' : 
                 _,_,_,_,S,h = mat
                 T1,T2 = Tm
-                r = 1
+                r = 1.0
                 k = h(T1,T2)
                 if Materiaux[i+1][0] == 'Cylindric' :
-                    r *= 2*Materiaux[i+1][-1][0] 
+                    r = 2*Materiaux[i+1][-1][0] 
                 matrixK[N0:N0+Nxi+1,N0:N0+Nxi+1] += [[S*k,-k*S],
                                                     [-k*r,k*r]]  
                                                     
             if mat[0] == 'RightFluidCavity' : 
                 _,_,_,_,S,h = mat
                 T1,T2 = Tm
-                r = 1
+                r = 1.0
                 k = h(T1,T2)
                 if Materiaux[i-1][0] == 'Cylindric' :
-                    r *= 2*Materiaux[i-1][-1][1] 
+                    r = 2*Materiaux[i-1][-1][1] 
                 matrixK[N0:N0+Nxi+1,N0:N0+Nxi+1] += [[r*k,-k*r],
                                                     [-k*S,k*S]]   
                                                     
-                                                    
-            if mat[0] == 'FluidFlow' : 
-                _,rho,cp,_,qv,V,(S1,S2),(h1,h2) = mat
-                T1,Tf,T2 = Tm
-                k1 = h1(T1,Tf)
-                k2 = h2(Tf,T2)
-                r1,r2 = 1,1
-                if Materiaux[i-1][0] == 'Cylindric' :
-                    r1 *= 2*Materiaux[i-1][-1][1] 
-                if Materiaux[i+1][0] == 'Cylindric' :
-                    r2 *= 2*Materiaux[i+1][-1][0] 
-                
-                matrixK[N0:N0+Nxi+1,N0:N0+Nxi+1] += [[k1*r1,-k1*r1,0],
-                                                    [-k1*S1,S1*k1+S2*k2,-k2*S2],
-                                                    [0,-k2*r2,k2*r2]] 
-                                                    
-                                                    
-            if mat[0] == 'LeftFluidFlow' : 
-                _,rho,cp,_,qv,V,S,h = mat
-                T1,T2 = Tm
-                r = 1
-                k = h(T1,T2)
-                if Materiaux[i+1][0] == 'Cylindric' :
-                    r *= 2*Materiaux[i+1][-1][0] 
-                matrixK[N0:N0+Nxi+1,N0:N0+Nxi+1] += h(T1,T2)*np.array([[S,-S],[-r,r]]) 
-                
-                                                                   
-            if mat[0] == 'RightFluidFlow' : 
-                _,rho,cp,_,qv,V,S,h = mat
-                T1,T2 = Tm
-                r = 1
-                if Materiaux[i-1][0] == 'Cylindric' :
-                    r *= 2*Materiaux[i-1][-1][1] 
-                matrixK[N0:N0+Nxi+1,N0:N0+Nxi+1] += h(T1,T2)*np.array([[r,-r],[-S,S]])                                              
+                                                     
+            # if mat[0] == 'FluidFlow' : 
+            #     _,rho,cp,_,qv,V,(S1,S2),(h1,h2) = mat
+            #     T1,Tf,T2 = Tm
+            #     k1 = h1(T1,Tf)
+            #     k2 = h2(Tf,T2)
+            #     r1,r2 = 1.0,1.0
+            #     if Materiaux[i-1][0] == 'Cylindric' :
+            #         r1 = 2*Materiaux[i-1][-1][1] 
+            #     if Materiaux[i+1][0] == 'Cylindric' :
+            #         r2 = 2*Materiaux[i+1][-1][0] 
+            #     
+            #     matrixK[N0:N0+Nxi+1,N0:N0+Nxi+1] += [[k1*r1,-k1*r1,0],
+            #                                         [-k1*S1,S1*k1+S2*k2,-k2*S2],
+            #                                         [0,-k2*r2,k2*r2]] 
+            #                                         
+            #                                         
+            # if mat[0] == 'LeftFluidFlow' : 
+            #     _,rho,cp,_,qv,V,S,h = mat
+            #     T1,T2 = Tm
+            #     r = 1.0
+            #     k = h(T1,T2)
+            #     if Materiaux[i+1][0] == 'Cylindric' :
+            #         r = 2*Materiaux[i+1][-1][0] 
+            #     print(r)
+            #     dfgh
+            #     matrixK[N0:N0+Nxi+1,N0:N0+Nxi+1] += h(T1,T2)*np.array([[S,-S],[-r,r]]) 
+            #     
+            #                                                        
+            # if mat[0] == 'RightFluidFlow' : 
+            #     _,rho,cp,_,qv,V,S,h = mat
+            #     T1,T2 = Tm
+            #     r = 1.0
+            #     if Materiaux[i-1][0] == 'Cylindric' :
+            #         r = 2*Materiaux[i-1][-1][1] 
+            #     print(r)
+            #     dfgh
+            #     matrixK[N0:N0+Nxi+1,N0:N0+Nxi+1] += h(T1,T2)*np.array([[r,-r],[-S,S]])                                              
                                        
             N0+=Nxi              
                           
@@ -270,31 +273,22 @@ def DenseMatrix(BCs,Materiaux,Discret,Sources,Advection,size,facteurs = (1,1)):
             return vectS
     
     
-    #Source par inlet de masse
-    if Advection == [] :
-        VectA = lambda T,t : np.zeros(size)
-    
-    else : 
+    #Convection
+    Indice = [k for k,_,_,_ in Advection]
+    indexConvection = []
+    for k in Indice:
+        if k == 0 : 
+            indexConvection.append(0)
+        else : 
+            N0 = sum([N for N,_ in Discret[:k]]) + 1
+            indexConvection.append(N0)
         
-        Indice = [k for k,_ in Advection]
-        index = []
-        H = np.zeros((size,len(Advection)))
-        for i,k in enumerate(Indice):
-            if k == 0 : 
-                index.append(0)
-                H[0,i] = 1
-            elif k == len(Discret) : 
-                H[-1,i] = 1
-                index.append(size)
-            else : 
-                N0 = sum([N for N,_ in Discret[:k]]) + 1
-                H[N0,i] = 1
-                index.append(N0)
+    vectA = np.zeros(size)
+    def VectA( T,  t ): 
         
-        G = lambda T,t : [g(T[i],t) for i,(_,g) in zip(index,Advection)]
-        
-        def VectA( T,  t ): 
-            return H.dot(G(T,t))
+        for index,(_,qm,Cp,Tinlet) in zip(indexConvection,Advection) :
+            vectA[index] = qm*Cp(T[index])*(Tinlet(t)-T[index])
+        return vectA
     
             
     return invMatC,MatK,VectB,VectS,VectA

@@ -171,7 +171,8 @@ class equationModel :
             self.__Materiaux +=  [['FluidCavity',rho,Cp,V,S,h]]
             if qm is not None : 
                 Qinlet = lambda T,t : Cp(0.5*(T+Tinlet(t)))*qm*(Tinlet(t)-T)
-                self.__Advection += [[len(self.__Materiaux)-1,Qinlet]]
+                # self.__Advection += [[len(self.__Materiaux)-1,Qinlet]]
+                self.__Advection += [[len(self.__Materiaux)-1,qm,Cp,Tinlet]]
             if Qint is not None :
                 self.__QintList += [Qint]
                 Qs = lambda t : [0,V*Qint(t),0]
@@ -182,7 +183,8 @@ class equationModel :
             self.__Materiaux += [['LeftFluidCavity',rho,Cp,V,S,h]]
             if qm is not None : 
                 Qinlet = lambda T,t : Cp(0.5*(T+Tinlet(t)))*qm*(Tinlet(t)-T)
-                self.__Advection += [[len(self.__Materiaux)-1,Qinlet]]
+                # self.__Advection += [[len(self.__Materiaux)-1,Qinlet]]
+                self.__Advection += [[len(self.__Materiaux)-1,qm,Cp,Tinlet]]
             if Qint is not None :
                 self.__QintList += [Qint]
                 Qs = lambda t : [V*Qint(t),0]
@@ -208,7 +210,8 @@ class equationModel :
             self.__Materiaux +=  [['FluidCavity',rho,Cv,V,S,h]]
             if qm is not None : 
                 Qinlet = lambda T,t : Cp(0.5*(T+Tinlet(t)))*qm*(Tinlet(t)-T)
-                self.__Advection += [[len(self.__Materiaux)-1,Qinlet]]
+                # self.__Advection += [[len(self.__Materiaux)-1,Qinlet]]
+                self.__Advection += [[len(self.__Materiaux)-1,qm,Cp,Tinlet]]
             if Qint is not None :
                 self.__QintList += [Qint]
                 Qs = lambda t : [0,V*Qint(t),0]
@@ -219,7 +222,8 @@ class equationModel :
             self.__Materiaux += [['LeftFluidCavity',rho,Cv,V,S,h]]
             if qm is not None : 
                 Qinlet = lambda T,t : Cp(0.5*(T+Tinlet(t)))*qm*(Tinlet(t)-T)
-                self.__Advection += [[len(self.__Materiaux)-1,Qinlet]]
+                # self.__Advection += [[len(self.__Materiaux)-1,Qinlet]]
+                self.__Advection += [[len(self.__Materiaux)-1,qm,Cp,Tinlet]]
             if Qint is not None :
                 self.__QintList += [Qint]
                 Qs = lambda t : [V*Qint(t),0]
