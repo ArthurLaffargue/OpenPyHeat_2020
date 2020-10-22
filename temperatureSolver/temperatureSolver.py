@@ -25,9 +25,9 @@ OpenPyHeat_Solver.py
 class equationModel : 
     
     __solidType = ['Solid','Cylindric']
-    __fluidType = ['FluidCavity','FluidFlow',
-                   'LeftFluidCavity','LeftFluidFlow',
-                   'RightFluidCavity','RightFluidFlow']
+    __fluidType = ['FluidCavity',
+                   'LeftFluidCavity',
+                   'RightFluidCavity']
 
     def __init__(self) : 
         self.__Materiaux = [] #Liste des matériaux présents 
@@ -123,37 +123,6 @@ class equationModel :
             
             
             
-            
-              
-    def addFluidCavity(self,rho,Cp,V,S,h,Qint=None):
-        """Add a fluid cavity to the study : 
-        rho : function f(T), is the density. 
-        Cp : function f(T), is the heat capacity.
-        V : float, is the total volume of the cavity. 
-        S : tuple<float>, the two surfaces of exchanges.
-        h : tuple<float>, the two convective exchange coefficients. 
-        Qint : None or function f(t), is internal source.
-
-        Units : cp(J/(K.kg)) ; rho  (kg/m3) ; V(m3) ; S(m2) ; h(W/(K.m2) ; Qint(W/m3)"""
-
-        if self.__Materiaux != [] :
-            self.__Discretisation += [[2,None]]
-            self.__Materiaux += [['FluidCavity',rho,Cp,V,S,h]]
-            self.__method.append('Centered')
-            if Qint is not None :
-                self.__QintList += [Qint]
-                Qs = lambda t : [0,V*Qint(t),0]
-                self.__Source += [[len(self.__Materiaux)-1,Qs]]
-        else : 
-            self.__Discretisation += [[1,None]]
-            self.__Materiaux += [['LeftFluidCavity',rho,Cp,V,S,h]]
-            self.__method.append('Centered')
-            if Qint is not None :
-                self.__QintList += [Qint]
-                Qs = lambda t : [V*Qint(t),0]
-                self.__Source += [[len(self.__Materiaux)-1,Qs]]
-
-
     def addLiquid0D(self,rho,Cp,V,S,h,Qint=None,qm=None,Tinlet=None):
         """Add a fluid cavity with flow out to the study : 
         rho : function f(T), is the density. 
@@ -170,24 +139,20 @@ class equationModel :
             self.__method.append('Centered')
             self.__Materiaux +=  [['FluidCavity',rho,Cp,V,S,h]]
             if qm is not None : 
-                Qinlet = lambda T,t : Cp(0.5*(T+Tinlet(t)))*qm*(Tinlet(t)-T)
-                # self.__Advection += [[len(self.__Materiaux)-1,Qinlet]]
                 self.__Advection += [[len(self.__Materiaux)-1,qm,Cp,Tinlet]]
             if Qint is not None :
                 self.__QintList += [Qint]
-                Qs = lambda t : [0,V*Qint(t),0]
+                Qs = lambda t : np.array([[0],[V*Qint(0,t)],[0]])[0]
                 self.__Source += [[len(self.__Materiaux)-1,Qs]]
         else : 
             self.__Discretisation += [[1,None]]
             self.__method.append('Centered')
             self.__Materiaux += [['LeftFluidCavity',rho,Cp,V,S,h]]
             if qm is not None : 
-                Qinlet = lambda T,t : Cp(0.5*(T+Tinlet(t)))*qm*(Tinlet(t)-T)
-                # self.__Advection += [[len(self.__Materiaux)-1,Qinlet]]
                 self.__Advection += [[len(self.__Materiaux)-1,qm,Cp,Tinlet]]
             if Qint is not None :
                 self.__QintList += [Qint]
-                Qs = lambda t : [V*Qint(t),0]
+                Qs = lambda t : np.array([V*Qint(0,t),[0.0]])[0]
                 self.__Source += [[len(self.__Materiaux)-1,Qs]]
 
 
@@ -209,24 +174,20 @@ class equationModel :
             self.__method.append('Centered')
             self.__Materiaux +=  [['FluidCavity',rho,Cv,V,S,h]]
             if qm is not None : 
-                Qinlet = lambda T,t : Cp(0.5*(T+Tinlet(t)))*qm*(Tinlet(t)-T)
-                # self.__Advection += [[len(self.__Materiaux)-1,Qinlet]]
                 self.__Advection += [[len(self.__Materiaux)-1,qm,Cp,Tinlet]]
             if Qint is not None :
                 self.__QintList += [Qint]
-                Qs = lambda t : [0,V*Qint(t),0]
+                Qs = lambda t : np.array([[0],[V*Qint(0,t)],[0]])[0]
                 self.__Source += [[len(self.__Materiaux)-1,Qs]]
         else : 
             self.__Discretisation += [[1,None]]
             self.__method.append('Centered')
             self.__Materiaux += [['LeftFluidCavity',rho,Cv,V,S,h]]
             if qm is not None : 
-                Qinlet = lambda T,t : Cp(0.5*(T+Tinlet(t)))*qm*(Tinlet(t)-T)
-                # self.__Advection += [[len(self.__Materiaux)-1,Qinlet]]
                 self.__Advection += [[len(self.__Materiaux)-1,qm,Cp,Tinlet]]
             if Qint is not None :
                 self.__QintList += [Qint]
-                Qs = lambda t : [V*Qint(t),0]
+                Qs = lambda t : np.array([V*Qint(0,t),[0.0]])[0]
                 self.__Source += [[len(self.__Materiaux)-1,Qs]]
                 
                 
@@ -350,20 +311,18 @@ class equationModel :
                 
                 
         #Fluide à droite sans wall 
-        if self.__Materiaux[-1][0] == 'FluidFlow' or self.__Materiaux[-1][0] == 'FluidCavity' :
+        if self.__Materiaux[-1][0] == 'FluidCavity' :
             self.__Discretisation[-1][0] = 1
-            self.__Materiaux[-1][0] = 'Right' + self.__Materiaux[-1][0]
+            self.__Materiaux[-1][0] = 'RightFluidCavity'
             
             #Source de chaleur 
             if self.__Source != [] : 
                 if self.__Source[-1][0] == len(self.__Materiaux)-1 : 
-                    if self.__Materiaux[-1][0] == 'RightFluidFlow' : 
-                        V = self.__Materiaux[-1][5]
-                    if self.__Materiaux[-1][0] == 'RightFluidCavity' : 
-                        V = self.__Materiaux[-1][3]
-                    self.__Source[-1][1] = lambda t : [0,V*self.__QintList[-1](t)]
-                    
-    
+                    V = self.__Materiaux[-1][3]
+                    Qint = self.__QintList[-1]
+                    Qs = lambda t : np.array([[0.0],V*Qint(0,t)]).T[0]
+                    self.__Source[-1][1] = Qs
+                    print(Qs(0.0))
     
     
     
@@ -381,7 +340,6 @@ class equationModel :
         print("EQUATION : \n...")
         #Initialisation
         Materiaux = self.__Materiaux
-        Interfaces = self.__Interfaces
         BCs = self.__BCs
         Discret = self.__Discretisation
         Sources = self.__Source

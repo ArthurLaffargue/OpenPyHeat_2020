@@ -780,8 +780,8 @@ def readSourceFile(file,path,dim=0) :
             raise ValueError("Parameter syntax error.")
     
     
-    if "internalfield" not in Dict : 
-        internalField = 0
+    if ("internalfield" not in Dict) or (dim==0) : 
+        Dict['internalfield'] = 'uniform'
     if dim != 0 and "internalfield" not in Dict  : 
         print('ERROR : "internalField" not found in ',file)
         raise ValueError("Missing parameter.")
@@ -864,18 +864,18 @@ def readSourceFile(file,path,dim=0) :
     if interpScheme == 'cubic' :
         if tshape == 1 :
             tvector = [0,1,10,1e9]
-            sMat = np.array([sMat[0]]*4)
+            sMat = np.array([sMat[0]]*4,dtype=float)
         if xshape == 1 :
             xvector = [0,0.25,0.75,1.0]
-            sMat = np.array([sMat[:,0]]*4).T 
+            sMat = np.array([sMat[:,0]]*4,dtype=float).T 
             
     if interpScheme == 'linear' : 
         if tshape == 1 :
             tvector = [0,1e9]
-            sMat = np.array([sMat[0]]*2)
+            sMat = np.array([sMat[0]]*2,dtype=float)
         if xshape == 1 :
             xvector = [0,1.0]
-            sMat = np.array([sMat[:,0]]*2).T 
+            sMat = np.array([sMat[:,0]]*2,dtype=float).T 
 
     
     return interp2d(xvector, tvector, sMat, kind=interpScheme)

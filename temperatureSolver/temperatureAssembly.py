@@ -36,7 +36,7 @@ def DenseMatrix(BCs,Materiaux,Discret,Sources,Advection,size,facteurs = (1,1)):
     def invMatC(T) : 
         diagC = np.zeros(size) 
         N0 = 0
-        for i,(mat,(Nxi,dx)) in enumerate(zip(Materiaux,Discret)) :
+        for (mat,(Nxi,dx)) in zip(Materiaux,Discret) :
             Tm = T[N0:N0+Nxi+1]
             
             if mat[0] == 'Solid' :
@@ -45,28 +45,15 @@ def DenseMatrix(BCs,Materiaux,Discret,Sources,Advection,size,facteurs = (1,1)):
                 
                 diagC[N0:N0+Nxi] += C
                 diagC[N0+1:N0+Nxi+1] += C
-                """
-                for i,ci in enumerate(C) :
-                    j = N0+i
-                    diagC[j:j+2:] += [ci,ci]"""
                           
                    
             if mat[0] == 'Cylindric' : 
-                _,k,rho,cp,(ri,re) = mat
+                _,_,rho,cp,(ri,re) = mat
                 C = 0.5*rho*cp(0.5*(Tm[1:]+Tm[:-1]))
                 r1 = np.linspace(ri,re-dx,Nxi)
                 r2 = r1+dx
                 diagC[N0:N0+Nxi] += C*(r2**2-r1**2)
                 diagC[N0+1:N0+Nxi+1] += C*(r2**2-r1**2)
-                """
-                r1 = ri
-                r2 = ri + dx
-                C = 0.5*rho*cp(0.5*(Tm[1:]+Tm[:-1]))
-                for i,ci in enumerate(C) : 
-                    j = N0+i
-                    diagC[j:j+2:] += ci*np.array([r2**2-r1**2,r2**2-r1**2])
-                    r1 += dx
-                    r2 += dx"""
                     
                     
             if mat[0] == 'FluidCavity' : 
@@ -86,24 +73,7 @@ def DenseMatrix(BCs,Materiaux,Discret,Sources,Advection,size,facteurs = (1,1)):
             if mat[0] == 'RightFluidCavity' :
                 _,rho,cp,V,_,_ = mat
                 T1,T2 = Tm
-                diagC[N0+1] += rho*cp((T1+T2)/2)*V
-                
-            # if mat[0] == 'FluidFlow' : 
-            #     _,rho,cp,_,_,V,_,_ = mat
-            #     T1,Tf,T2 = Tm
-            #     c1 = 0.5*V*rho*cp(0.5*(T1+Tf))
-            #     c2 = 0.5*V*rho*cp(0.5*(T2+Tf))
-            #     diagC[N0+1] += c1+c2
-            # 
-            # if mat[0] == 'LeftFluidFlow' :
-            #     _,rho,cp,_,_,V,_,_ = mat
-            #     T1,T2 = Tm
-            #     diagC[N0] += rho*cp((T1+T2)/2)*V
-            #     
-            # if mat[0] == 'RightFluidFlow' :
-            #     _,rho,cp,_,_,V,_,_ = mat
-            #     T1,T2 = Tm
-            #     diagC[N0+1] += rho*cp((T1+T2)/2)*V                
+                diagC[N0+1] += rho*cp((T1+T2)/2)*V             
                                           
             N0+=Nxi     
                
@@ -126,11 +96,6 @@ def DenseMatrix(BCs,Materiaux,Discret,Sources,Advection,size,facteurs = (1,1)):
                 matrixK[N0+1:N0+Nxi+1,N0+1:N0+Nxi+1] +=  np.eye(Nxi)*K
                 matrixK[N0+1:N0+Nxi+1,N0:N0+Nxi] += -np.eye(Nxi)*K
 
-                """
-                for i in range(0,Nxi) :
-                    j = N0+i
-                    matrixK[j:j+2,j:j+2] += [[K[i],-K[i]],[-K[i],K[i]]]"""
-                          
             if mat[0] == 'Cylindric' : 
                 _,k,_,_,(ri,re) = mat
                 # K = k(Tm)/dx
@@ -143,13 +108,6 @@ def DenseMatrix(BCs,Materiaux,Discret,Sources,Advection,size,facteurs = (1,1)):
                 matrixK[N0+1:N0+Nxi+1,N0+1:N0+Nxi+1] +=  np.eye(Nxi)*K*(r1+r2)
                 matrixK[N0+1:N0+Nxi+1,N0:N0+Nxi] += -np.eye(Nxi)*K*(r1+r2)
                 
-                """
-                r1,r2 = ri,ri+dx
-                for i in range(0,Nxi) :
-                    j = N0+i
-                    matrixK[j:j+2,j:j+2:] += (r1+r2)*np.array([[K[i],-K[i]],[-K[i],K[i]]])
-                    r1 += dx
-                    r2 += dx"""
                     
                     
             if mat[0] == 'FluidCavity' : 
@@ -185,45 +143,7 @@ def DenseMatrix(BCs,Materiaux,Discret,Sources,Advection,size,facteurs = (1,1)):
                     r = 2*Materiaux[i-1][-1][1] 
                 matrixK[N0:N0+Nxi+1,N0:N0+Nxi+1] += [[r*k,-k*r],
                                                     [-k*S,k*S]]   
-                                                    
-                                                     
-            # if mat[0] == 'FluidFlow' : 
-            #     _,rho,cp,_,qv,V,(S1,S2),(h1,h2) = mat
-            #     T1,Tf,T2 = Tm
-            #     k1 = h1(T1,Tf)
-            #     k2 = h2(Tf,T2)
-            #     r1,r2 = 1.0,1.0
-            #     if Materiaux[i-1][0] == 'Cylindric' :
-            #         r1 = 2*Materiaux[i-1][-1][1] 
-            #     if Materiaux[i+1][0] == 'Cylindric' :
-            #         r2 = 2*Materiaux[i+1][-1][0] 
-            #     
-            #     matrixK[N0:N0+Nxi+1,N0:N0+Nxi+1] += [[k1*r1,-k1*r1,0],
-            #                                         [-k1*S1,S1*k1+S2*k2,-k2*S2],
-            #                                         [0,-k2*r2,k2*r2]] 
-            #                                         
-            #                                         
-            # if mat[0] == 'LeftFluidFlow' : 
-            #     _,rho,cp,_,qv,V,S,h = mat
-            #     T1,T2 = Tm
-            #     r = 1.0
-            #     k = h(T1,T2)
-            #     if Materiaux[i+1][0] == 'Cylindric' :
-            #         r = 2*Materiaux[i+1][-1][0] 
-            #     print(r)
-            #     dfgh
-            #     matrixK[N0:N0+Nxi+1,N0:N0+Nxi+1] += h(T1,T2)*np.array([[S,-S],[-r,r]]) 
-            #     
-            #                                                        
-            # if mat[0] == 'RightFluidFlow' : 
-            #     _,rho,cp,_,qv,V,S,h = mat
-            #     T1,T2 = Tm
-            #     r = 1.0
-            #     if Materiaux[i-1][0] == 'Cylindric' :
-            #         r = 2*Materiaux[i-1][-1][1] 
-            #     print(r)
-            #     dfgh
-            #     matrixK[N0:N0+Nxi+1,N0:N0+Nxi+1] += h(T1,T2)*np.array([[r,-r],[-S,S]])                                              
+                                                                                          
                                        
             N0+=Nxi              
                           
