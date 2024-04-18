@@ -168,7 +168,32 @@ def DenseMatrix(BCs,Materiaux,Discret,Sources,Advection,size,facteurs = (1,1)):
         
           
         
-    
+    def VectPhiLat(T,t) :
+        """
+        Flux de température lateral
+        """
+        phi_lat = np.zeros(size)
+        N0 = 0
+        for i,(mat,(Nxi,dx)) in enumerate(zip(Materiaux,Discret)) :
+            Tm = T[N0:N0+Nxi+1]
+            e = dx # Epaisseur dans le sens transversale normal à la surface latérale
+            h_lat = 0 # Coefficient convectif latéral
+            sigma = 5.67e-8
+            emissivity = 0 # Emissivié thermique 
+            Text = lambda t : np.zeros_like(t) # Température externe
+            
+            if mat[0] == 'Solid' :
+                gamma = 2*dx/e # multiplié par 2 car il y a deux côtés 
+                
+            if mat[0] == 'Cylindric' : 
+                _,_,_,_,(ri,re) = mat
+                r1 = np.linspace(ri,re-dx,Nxi)
+                r2 = r1+dx
+                gamma = 2*(r2**2-r1**2)/e # multiplié par 2 car il y a deux côtés 
+            else : 
+                gamma = 0
+            phi_lat[N0:N0+Nxi+1] = gamma*( h_lat * (Text(t) - Tm) + sigma * emissivity * ( Text(t)**4 - Tm**4 ) )
+        return phi_lat
     
     
     
